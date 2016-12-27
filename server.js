@@ -28,6 +28,6 @@ app.get("/:filename", function(req, resp){
 	var filename = req.params.filename;
 	resp.sendFile(__dirname + "/public/" + filename + ".html");
 });
-
-app.listen(3000);
-console.log("The server is started, listen on port 3000");
+var port = process.env.PORT || 3000;
+app.listen(port);
+console.log("The server is started, listen on port " + port);
