@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test</title>
+	<script src="js/angular.min.js"></script>
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+
+	<script>
+		var app = angular.module("mainApp", []);
+		app.controller("homeCtrl", ["$scope", function($scope){
+			$scope.message = "Hello Test";
+			$scope.message2 = "two way binding";
+			$scope.change = function(){
+				$scope.message = "change function";
+			}
+			$scope.notShow = false;
+		}])
+		function change2(){
+			console.log("outside controller funciton");
+			console.log(app);
+		}
+	</script>
+</head>
+<body ng-app="mainApp">
+	<div ng-controller="homeCtrl">
+
+		<p>{{message}}</p>
+		<input ng-bind="message2"/>
+		<p ng-bind="message2"></p>
+		
+		<button onclick="change()">onclick</button>
+		<button ng-click="change()">ng-click</button>
+		<button onclick="change2()">onclick2</button>
+
+		<input ng-model="value" type = "number"/>
+		<p ng-hide="false">Not Hide</p>
+		<p ng-show="notShow">Not Show</p>
+		<p ng-if="value>5">Value is Greater than 5!</p>
+
+		<p>Unclickable input <input type = "text" disabled></p>
+	</div>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!-- validation(form) in AngularJS are not cover in class, covered in homework -->
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Demo 10</title>
+	<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
+	<script src = "js/angular.min.js"></script>
+	<script type="text/javascript">
+		var app = angular.module("mainApp", []);
+		app.controller("mainCtrl",["$scope", "$http", "$q", function($scope, $http, $q){
+			$scope.doCal = function(){
+				$http.get("/show/server/directory").then(function(resp){
+					console.log(resp);
+				});
+				$q.all([
+					$http.post("/rest/cal/add", $scope.data),
+					$http.post("/rest/cal/multiply", $scope.data)
+
+				]).then(function(resp){
+					console.log(resp);
+					$scope.result = resp[0].data / resp[1].data;
+				})
+			}
+
+			$scope.name = "Alice";
+		}])
+
+		app.directive("myElem", function(){
+			return{
+				scope: {}, //Isolated scope won't inherit， 3 types: 
+				template: "<p>Hello {{name}}, you are in isolated scope</p>",
+				link: function(scope, element, attr){
+					scope.name = "Bob";
+				}
+			}
+		})
+	</script>
+</head>
+<body ng-app = "mainApp">
+<div class = "container" ng-controller = "mainCtrl">
+	<h1>Angular $q Service</h1>
+	<hr>
+	<div>
+	<!-- col system will automatically use the responsive design 
+	3 different forms in bootstrap 3WS school bootstrap tutorial css css3 html html5 UI part try it myself!!! !know remember
+	all dclaritive language: no logic-->
+		<div class = "form col-sm-6"> 
+			<div class = "form-group">
+			<!-- highlight the inputfield of corresponding to the id-->
+			<!-- !!!name is for backend id is for front end -->
+				<label for = "x">Input x: </label>
+				<input type = "number" class = "form-control" min = "1" max = "100" ng-model = "data.x"/>
+			</div>
+			<div class = "form-group">
+				<label>Input y: </label>
+				<input type = "number" class = "form-control" name = "y" ng-model = "data.y" />
+			</div>
+			<button class = "btn btn-primary" ng-click = "doCal()" type = "submit">Calculate</button>
+		</div>
+		<div>
+			<h3>Result: {{result}}</h3>
+		</div>
+	</div>
+	<h2>Isolated Scope</h2>
+	<my-elem></my-elem>
+</div>
+
+</body>
+</html>

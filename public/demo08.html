@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Demo08</title>
+	<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
+	<script src = "js/angular.min.js"></script>
+	<script>
+		var app = angular.module("mainApp", []);
+		app.controller("mainCtrl", ["$scope", "$injector", function($scope, $injector){
+			$injector.invoke(function(person, myService, myFactory, myProvider, testService){
+				$scope.person = person;
+				$scope.service = myService;
+				$scope.factory = myFactory;
+				$scope.provider = myProvider;
+				$scope.testService = testService;
+			})
+
+			$scope.getAllData = function(){
+				$injector.invoke(function(dataService){
+					dataService.then(function(value){
+						$scope.personList = value;
+					})
+				})	
+			}
+
+		}]);
+		//value represents an object
+		app.value("person", {
+			name: "Alice",
+			sayHello: function(){
+				return "Hello" + this.name;
+			}
+		});
+		// service represents a constructor: closure and inherit
+		app.service("myService", function(){
+			this.name = "My Service";
+			this.getName = function(){
+				return this.name;
+			}
+		})
+
+		app.service("testService", ["$http", function($http){
+			this.ajaxCall = function(){
+				$http.get("https://jsonplaceholder.typicode.com/posts").then(function(resp){
+					console.log(resp);
+				});
+			}
+		}])
+		//factory returns an object, in the industry factory is more popular to create the service
+		//middle tier to seperate the functionality(returened an object wich is the service)
+
+		app.factory("myFactory", function(){
+			var count = 0;
+			return{
+				name: "My Factory",
+				getCount: function(){
+					return count;
+				},
+				increase: function(){
+					count++;
+				},
+				reset: function(){
+					count = 0;
+				}
+			}
+		})
+		// Defferred Object
+		function dataService($q, $http){
+			var defer = $q.defer();
+			$http.post("/rest/service").then(function(result){
+				defer.resolve(result.data.records);
+			});
+			return defer.promise; // singleton only run once so the returned data is fixed and will not updated in the frontend unless u refresh the page(and should use resource to updated the data)
+		}
+		//serverice will call factory, factory will call provider(high eficient, lowest level)
+		app.factory("dataService", ["$q", "$http", dataService]);
+		app.provider("myProvider", function(){
+			this.prefix = "Mr.";
+			this.$get = function(){ // must have this function in provider
+				var that = this; 
+				return {
+					name: "My Provider",
+					getName: function(){
+						return that.prefix + " " + this.name;
+					}
+				}
+			}
+		})
+		app.config(["myProviderProvider", function(myProviderProvider){ //?
+			myProviderProvider.prefix = "***";
+		}])
+	</script>
+</head>
+<body ng-app = "mainApp">
+<div calss = "container" ng-controller = "mainCtrl">
+	<h1>Angluar Customized Service</h1>
+	<hr>
+	<h2>Use value to create a service</h2>
+	<p>Person Name: {{person.name}}</p>
+	<p>Say Hello: {{person.sayHello()}}</p>
+	<hr>
+	<h2>Use service to create a service</h2>
+	<p>Modify Service Name: <input type = "text" ng-model = "service.name"/></p>
+	<p>Obtained Service Name: {{service.getName()}}</p>
+	<hr>
+	<h2>Use factory to create a service</h2>
+	<p>Factory Name: {{factory.name}}</p>
+	<p>Factory count: {{factory.getCount()}}</p>
+	<p>
+		<button class = "btn btn-primary" ng-click = "factory.increase()">Increase Count</button>
+		<button class = "btn btn-primary" ng-click = "factory.reset()">Reset Count</button>
+	</p>
+	<hr>
+	<h2>Service. $resource (for REST)</h2>
+	<p><button ng-click = "getAllData()" class = "btn btn-primary">Get All Resource Data</button></p>
+	<ul>
+		<li ng-repeat = "person in personList">
+			{{person.name}} at {{person.city}} in {{person.country}}
+		</li>
+	</ul>
+	<h2>Use provider to create a service</h2>
+	<p>Provider name: {{provider.getName()}}</p>
+	<hr>
+	<button ng-click="testService.ajaxCall()">Get Posts</button>
+</div>
+</body>
+</html>

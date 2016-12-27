@@ -1,0 +1,112 @@
+<!-- in backend could use session to communicate between different pages -->
+<!-- default page? -->
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Demo09</title>
+	<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
+	<script src = "js/angular.min.js"></script>
+	<script src = "js/angular-route.min.js"></script>
+	<script src = "js/angular-ui-router.min.js"></script>
+	<script>
+		var app = angular.module("mainApp", ["ngRoute", "ui.router"]);
+		app.controller("mainCtrl",["$scope", function($scope){
+			$scope.person = {
+				firstName: "Alice",
+				lastName: "Wang"
+			};
+			$scope.value = 100;
+		}])
+		app.service("sharedData",function(){
+			var value = 10;
+			this.getValue = function(){
+				return value;
+			}
+			this.setValue = function(v){
+				value = v;
+			}
+		})
+		app.config(["$routeProvider", function($routeProvider){
+			$routeProvider.when("/home", {
+				templateUrl: "template/home.html"
+			}).when("/menu1", {
+				templateUrl: "template/menu1.html",
+				controller: "menu1Ctrl"
+			}).when("/menu2/:name", {
+				templateUrl: "template/menu2.html",
+				controller: "menu2Ctrl"
+			}).otherwise({
+				redirectTo: "/home" //default page
+			});
+		}])
+		app.controller("menu1Ctrl", ["$scope", "$location", "sharedData", function($scope, $location, sharedData){
+			$scope.goHome = function(){
+				$location.path("/home");
+			}
+			$scope.service = sharedData;
+			$scope.$watch("x", function(newVal){
+				if(newVal) $scope.service.setValue(newVal);
+			})
+		}])
+		app.controller("menu2Ctrl", ["$scope", "$routeParams", "sharedData", function($scope, $routeParams, sharedData){
+			$scope.name = $routeParams.name;
+			$scope.service = sharedData;
+		}]);
+
+		app.config(["$stateProvider", function($stateProvider){
+			$stateProvider.state("main", {
+				url: "/main",
+				templateUrl: "template/main.html"
+			}).state("state1", {
+				url: "/state1",
+				templateUrl: "template/page1.html",
+				controller: function($scope){
+					$scope.message = "Hello, Page1";
+				}
+			}).state("state2", {
+				url: "/state2/:name",
+				templateUrl: "template/page2.html",
+				controller: function($scope, $stateParams){
+					$scope.message = "Hello Page2";
+					$scope.para = $stateParams.name;
+				}
+			}).state("state1.menu1",{
+				url: "/state1/menu1",
+				templateUrl: "template/sub1.html"
+			}).state("state1.menu2",{
+				url: "/state1/menu2",
+				templateUrl: "template/sub2.html"
+			})
+
+		}])
+	</script>
+</head>
+<body ng-app = "mainApp">
+<div class = "container" ng-controller = "mainCtrl">
+	<h1>Angular Routing</h1>
+	<hr>
+	<h2>Routing by ngRoute</h2>
+	<div>
+		<ul class = "list-inline">
+			<li><a href = "#home">Home</a></li>
+			<li><a href = "#menu1">Menu 1</a></li>
+			<li><a href = "#menu2/Bob">Menu 2</a></li>
+		</ul>
+		<!-- one ng-view -->
+		<div ng-view></div>
+	</div>
+	<hr>
+	<h2>Routing by ui-Router</h2>
+	<div class = "row">
+		<div class = "col-sm-6">
+			<p><a ui-sref = "main" class = "btn btn-default">Main Page</a></p>
+			<p><a ui-sref = "state1" class = "btn btn-default">Page 1</a></p>
+			<p><a ui-sref = "state2({name: 'Alice'})" class = "btn btn-default">Page 2</a></p>	
+		</div>
+		<div class = "col-sm-6">
+			<div ui-view></div>
+		</div>
+	</div>
+</div>
+</body>
+</html>

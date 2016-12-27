@@ -1,0 +1,137 @@
+<!-- # sign meaning? -->
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Deomo07</title>
+		<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
+		<script src = "js/angular.min.js"></script>
+		<script src = "js/angular-sanitize.min.js"></script>
+		<script src = "js/angular-resource.min.js"></script>
+		<script>
+			var app = angular.module("mainApp", ["ngSanitize", "ngResource"]);
+			//injector will inject all the services, interview!
+			//$http make ajax call is promise
+			app.controller("mainCtrl", ["$scope", "$location", "$sce", "$timeout", "$interval", "$injector", "$http", "$resource",
+				function($scope, $location, $sce, $timeout, $interval, $injector, $http, $resource){				
+				$scope.currentUrl = $location.absUrl();
+				$scope.message = "<b>This is bold message</b>";
+				$scope.secureMsg = $sce.trustAsHtml($scope.message);
+				$timeout(function(){
+					$scope.delayedMsg = "This is a delayed Message.";
+				}, 2000);
+				// $interval(function(){
+				// 	$scope.currentTime = new Date();
+				// }, 1000)
+				$injector.invoke(function($interval){
+					$interval(function(){
+						$scope.currentTime = new Date();
+					}, 1000)		
+				})
+				$scope.idList = [0, 1, 2, 3, 4, 5, 6];
+				//build-in functions will always call the digest() cycle and update changes always data binding while customized method(3rd party) neeed to call digest() manually
+				$scope.getDefaultData = function(){
+					$http.get("/rest/service").then(function(resp){
+						$scope.data = resp.data;
+						//$scope.data = resp; not then but use success
+					})
+				}
+				$scope.$watch("dataId", function(newVal){
+					$http.get("/rest/service/" + newVal).then(function(result){
+						$scope.inputData = result.data;
+					})
+				});
+				$scope.getAllData = function(){
+					$http.post("/rest/service").then(function(result){
+						$scope.personList = result.data.records;
+					});
+				}
+				// each ajax call is a promise
+				$scope.getAllData2 = function(){
+					//customized operation
+					/*var data = $resource("/rest/service", {}, {
+						create: {method: "POST"}
+					});*/
+					// mid layer between frontend and backend and be injected as a service
+					// CORS issue interview question
+					var data = $resource("/rest/service");
+					data.save(/*JSON parameters*/).$promise.then(function(resp){
+						console.log(resp);
+						$scope.personList2 = resp.records;
+					})
+					// data.get().$promise.then(function(resp){
+					// 	console.log(resp)
+					// })
+				}
+				$scope.getRemoteData = function(){
+					var url = "http://public-api.wordpress.com/rest/v1/sites/wtmpeachtest.wordpress.com/posts?callback=JSON_CALLBACK";
+					//var url = "";
+					$http.jsonp(url).then(function(resp){
+						$scope.objectList = resp.data.posts;
+					})
+				}
+			}]);
+		</script>
+	</head>
+	<body ng-app = "mainApp">
+		<div class = "container" ng-controller = "mainCtrl">
+			<h1>Angular Default Services</h1>
+			<hr>
+			<h2>Service: $location</h2>
+			<p>Current Url: {{currentUrl}}</p>
+			<hr>
+			<h2>Service: $sce</h2>
+			<p>Message: {{message}}</p>
+			<p>Regular Message: <span ng-bind-html = "message"></span></p>
+			<p>Secure Message: <span ng-bind-html = "secureMsg"></span></p>
+			<hr>
+			<h2>Service: $timeout and $interval</h2>
+			<p>Delayed Message: {{delayedMsg}}</p>
+			<p>Current Time: {{currentTime}}</p>
+			<hr>
+			<h2>Service: $http.get</h2>
+			<div class = "row">
+				<div class = "col-sm-4">
+					<p><button ng-click = "getDefaultData()" class = "btn btn-primary">Get Data</button></p>
+					<p>Name: {{data.name}}</p>
+					<p>Age: {{data.age}}</p>
+				</div>
+				<div class = "col-sm-4">
+					<p>
+						Index:
+						<select ng-model = "dataId" ng-options = "id for id in idList">
+						</select>
+					</p>
+					<p>Name: {{inputData.name}}</p>
+					<p>City: {{inputData.city}}</p>
+					<p>Country: {{inputData.country}}</p>
+				</div>
+				<hr>
+				<div>
+					<h2>Service: $http.post</h2>
+					<p><button ng-click = "getAllData()" class = "btn btn-warning">Get All Data</button></p>
+					<ul>
+						<li ng-repeat = "person in personList">
+							{{person.name}} at {{person.city}} in {{person.country}}
+						</li>
+					</ul>
+				</div>
+				<hr>
+				<h2>Service. $resource (for REST)</h2>
+				<p><button ng-click = "getAllData2()" class = "btn btn-primary">Get All Resource Data</button></p>
+				<ul>
+					<li ng-repeat = "person in personList2">
+						{{person.name}} at {{person.city}} in {{person.country}}
+					</li>
+				</ul>
+				<hr>
+				<h2>Service.$http.jsonp</h2>
+				<p><button ng-click = "getRemoteData()" class = "btn btn-primary">Get Remote Data</button></p>
+				<ul>
+					<li ng-repeat = "object in objectList | orderBy: object.ID: true">
+						{{object.ID}} : {{object.URL}}
+					</li>
+				</ul>
+			</div>
+		</div>
+	</body>
+</html>

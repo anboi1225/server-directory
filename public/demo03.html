@@ -1,0 +1,101 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
+		<script src = "js/angular.min.js"></script>
+		<script>
+			//customize ng directive
+			var app = angular.module("mainApp",[]);
+			app.controller("mainCtrl", ["$scope", function($scope){
+				$scope.name = "Bob";
+				$scope.value = 100;
+			}]);
+			app.directive("myElem", function(){ // myElem will be converted to tag <my-elem>
+				return{
+					//remember all attr!!!! interview like ajax
+					scope: false, //default false means using parent scope, no own scope; ture means using its own scope
+					restrict: "E", //default
+					template: "<p>This is my element. Hello {{name}}</p>",
+					link: function(scope, element, attr){
+						//define own scope, or get attribute from tag
+						scope.name = "Jane"; // Parent scope's name is changed to Jane
+					}
+				};
+			});
+			app.directive("anotherElem", function(){
+				return{
+					scope: true, // create child scope
+					templateUrl : "template/t1.html", // is more commanly used
+					transclude: true, //default is false
+					link: function(scope, element, attr){
+						scope.value = 20; //Parent scope's value is not changed
+						scope.x = attr.x; //can use not only html attr but also customized att(prop)
+						element.on("click", function(){ // can use element.find to get the more specfic one
+							console.log("The element is clicked");
+						})
+					}
+				}
+			});
+			app.directive("myAttr", function(){
+				return{
+					scope: true,
+					restrict: "A", //also default
+					template: "This is my attribute. Hello {{name}}",
+					link: function(scope, element, attr){ //function run first then excute template
+						scope.name = attr.myAttr; 
+					}
+				};
+			});
+			app.directive("myEvent", function(){
+				return function(scope, element, attr){
+					element.on("click",function(){
+						console.log(scope.value++); //deep inside of angularJS, dirty check(value changed?): digest cycle 
+						scope.$digest(); //normally this will be called automatically(with data bind: listen key down event)
+					});
+				}
+			});
+			app.directive("myClass", function(){
+				return{
+					scope: true,
+					restrict: "C", // not default type must specify
+					template: "This is my class. Hello {{name}}",
+					link: function(scope, element, attr){
+						scope.name = attr.myClass;
+					}
+				}
+			});
+			app.directive("myComment", function(){
+				return{
+					scope: false,
+					restrict: "M", // not default type must specify
+					replace: true, // display the comment
+					template: "<p>This is my comment</p>"
+				};
+			});
+		</script>
+	</head>
+	<!-- Custom Directives: component based 4 types of restrict: A attribute E element C class M comment -->
+	<body ng-app = "mainApp">
+		<div class = "container" ng-controller = "mainCtrl">
+			<h1>Custom Directives</h1>
+			<hr>
+			<p>Parent Name: {{name}}</p>
+			<p>Parent Value: {{value}}</p>
+			<h2>Element</h2>
+			<my-elem>doesn't show...</my-elem>
+			<h2>Another Element</h2>
+			<another-elem x = "10">Message within customized tag</another-elem>
+			<hr>
+			<h2>Attribute</h2>
+			<p my-attr = "Jason"></p>
+			<button my-event class = "btn btn-primary">Click Me</button>
+			<hr>
+			<h2>Class</h2>
+			<!-- Jane? -->
+			<p class = "my-class: Bob"></p> 
+			<hr>
+			<h2>Comment</h2>
+			<!-- directive: my-comment -->
+		</div>
+	</body>
+</html>

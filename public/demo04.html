@@ -1,0 +1,87 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<title>Deomo04</title>
+		<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
+		<script src = "js/angular.min.js"></script>
+		<script>
+			var app = angular.module("mainApp", []);
+			// primitive value enumtable have to create a new one if changed, object numtable
+			app.controller("parentCtrl", ["$scope", function($scope){
+				$scope.value = 100;
+				$scope.person = {
+					name: "Alice"
+				};;
+				$scope.itemList = ["AAA", "BBB", "CCC"];
+				$scope.x = 10;
+
+			}]);
+			app.controller("childCtrl", ["$scope", function($scope){
+				// $scope.person = {
+				// 	name: "Lucy"
+				// }
+				$scope.y = 100;
+			}]);
+			app.directive("increasex", function(){
+				return function(scope, element, attr){
+					element.on("click", function(){
+						scope.x++;
+						console.log("value of x: ", scope.x);
+						//scope.$digest();
+					});
+				}
+			});
+			app.directive("increasey", function(){
+				return function(scope, element, attr){
+					element.on("click", function(){
+						scope.y++;
+						console.log("value of y: ", scope.y);
+						//scope.$digest();
+						scope.$apply(); // equal to $rootscope.$digest(); performance might be a little bit worse
+						//apply can have parameter(function [callback]), filter inside to decide when to stop
+						//$rootScope.$digest();
+					})
+				}
+			})
+		</script>
+	</head>
+	<body ng-app="mainApp">
+	<div class = "container" ng-controller = "parentCtrl">
+		<h1>Scope Life Cycle</h1>
+		<hr>
+		<h2>Parent Scope and Child Scope</h2>
+		<h3>Inside Parent Scope</h3>
+		<p>Input value: <input type = "number" ng-model = "value" min = "1" max = "200"/>
+		<p>Get value: {{value}}</p>
+		<p>Input name: <input type = "text" ng-model = "person.name"/>
+		<p>Get name: {{person.name}}</p>
+		<p><button increasex>increase x</button></p>
+		<p>Value of x: {{x}}</p>
+		<!-- div tree structure lead inherit -->
+		<!-- directives ng-repeat ng-include ng-switch ng-view will generate child scope-->
+		<!-- permitive value will create own one but object will always inherit -->
+		<div ng-controller = "childCtrl">
+			<h3>Inside Child Controller</h3>
+			<!-- super.value -->
+			<p>Input value: <input type = "number" ng-model = "$parent.value" min = "1" max = "200"/>
+			<!-- <p>Input value: <input type = "number" ng-model = "value" min = "1" max = "200"/> -->
+			<p>Get value: {{value}}</p>
+			<p>Input name: <input type = "text" ng-model = "person.name"/>
+			<p>Input name: <input type = "text" ng-model = "person.name"/>
+			<p>Get name: {{person.name}}</p>
+			<p><button increasey>increase y</button></p>
+			<p>Value of y: {{y}}</p>
+		</div>
+		<hr>
+		<h2>Other directives that creates child scope</h2>
+		<p>Select All: <input type = "checkbox" ng-model = "check"/></p>
+		<ul>
+			<li ng-repeat = "item in itemList">
+				<input type = "checkbox" ng-model = "check"/>{{item}}
+			</li>
+		</ul>
+	</div>
+	<hr>
+
+	</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<title>Demo01</title>
+		<link rel = "stylesheet" herf = "css/bootstrap.min.css" type = "text/css">
+		<script src = "js/angular.min.js"></script>
+		<script>
+		//only one module in angular app but can have a lot controllers
+		//scope is a keyword
+		//DI: dependency injection
+			var app = angular.module("mainApp", []);
+			app.controller("mainCtrl", ["$scope", function($scope){ //inject scope, scope is the controller
+				$scope.x = 123456.895;
+				$scope.toUpper = function(){
+					$scope.name = $scope.name.toUpperCase();
+				}
+				$scope.str = "A string";
+				$scope.count = 50;
+				//Add a watch on "count"
+				//like observe in javascript
+				//$?
+				//rootscope, belong to the module
+				//only count only when the var is binded
+				$scope.$watch("count", function(newValue, oldValue){
+					console.log(newValue, oldValue);
+				})
+				$scope.countWatchers = function(){
+					var numOfWatchers = 0;
+					var elements = document.querySelectorAll(".ng-scope");
+					for(var i = 0; i < elements.length; i++){
+						var scope = angular.element(elements[i]).scope();
+						//$$?
+						if(scope.$$watchers){
+							numOfWatchers += scope.$$watchers.length;
+						}
+					}
+					return numOfWatchers;
+				}
+				var click = function(){
+				console.log('click');
+			}
+			}]);
+			app.controller("secondCtrl", function(){
+				this.message = "Binding without scope";
+				//$xxx.message2 = "test"
+			})
+			function clickme(){
+				console.log('click');
+			}
+		</script>
+	</head>
+	<!-- ng-app ng-controller? -->
+	<body ng-app = "mainApp"> 
+	<!-- angularjs could use variable in html -->
+	<!-- div has that scope -->
+	<!-- <button style="visibility: hidden" onclick='clickme()'>Visibility</button> -->
+	<!-- <button style="display: none" onclick="clickme()">Display</button> -->
+	<button style="opacity: 0" onclick="clickme()">Opacity</button>
+	<div class = "container" ng-controller = "mainCtrl">
+		<h1>Basic Data Binding</h1>
+		<hr>
+		<h2>One Way Binding</h2>
+		<!-- ng-init is still in scope -->
+		<div ng-init = "welcome = 'Hello, welcome to Angular!'">
+			<p>One way binding is a read-only binding</p>
+			<p>Binded Message: {{welcome}}</p> 
+			<!-- | ? -->
+			<p>Binded Message: <span ng-bind = "welcome | uppercase" style = "color: red"></span></p>
+			<p>Binded Message: <span style = "color: red">{{welcome}}</span></p>
+			<!-- filter? -->
+			<p>The value of x : {{x | currency}}</p>
+			<p>String: {{str}}</p>
+		</div>
+		<hr>
+		<div>
+			<h2>Two Way Binding</h2>
+			<div>
+				<p>Two way binding supports both read and write through ng-model</p>
+				<!-- 2 way: ng-model , always need input for frontend-->
+				<p>Your Name: <input type = "text" ng-model = "name" ng-change = "toUpper()"/></p>
+				<p>Your Name: {{name}}</p> 
+			</div>
+		</div>
+		<div>
+			<h2>One Time Binding</h2>
+			<p>Count: <input type = "number" ng-model = "count" min = "1" max = "100" /></p>
+			<!-- angularjs one-way binding will imporve the performance -->
+			<p>Initial count : {{::count}}</p>
+			<p>Current count :{{count}}</p>
+		</div>
+		<hr>
+		<h3>Number of Watchers: {{countWatchers()}}</h3>
+
+	</div>
+
+	<!-- angular2 feature -->
+	<div ng-controller = "secondCtrl as sc" class = "container">
+		<h2>Binding without $scope</h2>
+		<p>Binded message: {{sc.message}}</p>
+	</div>
+
+	</body>
+</html>

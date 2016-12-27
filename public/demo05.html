@@ -1,0 +1,68 @@
+<!-- brother controller(scope) relations -->
+<!-- 3 ways to communication: rootscope(shared parent not recommand); emit on broadcast;  angular service all angular service(object or method) is singleton?-->
+<!-- root scope: ng-app(normally means body) windows: whole tag -->
+<!DOCTYPE>
+<html>
+	<head>
+		<title>Deomo05</title>
+		<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
+		<script src = "js/angular.min.js"></script>
+		<script>
+			var app = angular.module("mainApp", []); //angular is naming space, no $ in angular
+			app.value("person", {
+				name: "Alice"
+			});
+			app.controller("mainCtrl", ["$scope", "$rootScope", function($scope, $rootScope){
+				$rootScope.account = {value: 1000};
+				$scope.value2 = 666;
+				$scope.$on("increaseValue", function(evt, value){ //$on is event handler
+					console.log("Parent receives value: " + value);
+					$scope.$broadcast("updateValue", value); // to all the child controller
+				})
+
+			}]);
+			/*        $on + $broadcast(to child)
+			                O
+					$emit      $on
+			           O        O
+			*/
+
+			app.controller("firstCtrl", ["$scope", "person", function($scope, person){ //dependency injection
+				$scope.value = 10;
+				//watcher will detect value change in this scope
+				$scope.$watch("value", function(newVal){
+					$scope.$emit("increaseValue", newVal);
+				})
+				$scope.person = person;
+			}]);
+			app.controller("secondCtrl",["$scope", "person", function($scope, person){
+				$scope.$on("updateValue", function(evt, value){
+					$scope.value = value;
+				});
+				$scope.person = person;
+			}]);
+		</script>
+	</head>
+	<body ng-app = "mainApp">
+	<div class = "container" ng-controller = "mainCtrl">
+		<h1>Communication Between Controllers</h1>
+		<hr>
+		<div ng-controller = "firstCtrl">
+			<h2>First Controller</h2>
+			<p>Account from rootScope: {{account.value}}</p>
+			<p><input type = "number" ng-model = "account.value" /></p>
+			<p><input type = "number" ng-model = "value" /></p>
+			<p><input type = "number" ng-model = "value2"></p>
+			<p>Input name: <input type = "text" ng-model = "person.name" /></p>
+		</div>
+		<hr>
+		<div ng-controller = "secondCtrl">
+			<h2>Second Controller</h2>
+			<p>Account from rootscope: {{account.value}}</p>
+			<p>Current value in first controller:{{value}}</p>
+			<p>{{value2}}</p>
+			<p>Person's name {{person.name}}</p>
+		</div>
+	</div>
+	</body>
+</html>

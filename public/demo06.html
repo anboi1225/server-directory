@@ -1,0 +1,77 @@
+<!-- filters -->
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Deomo06</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+		<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
+		<script src = "js/angular.min.js"></script>
+		<script>
+			var app = angular.module("mainApp", []);
+			app.controller("mainCtrl", ["$scope", function($scope){
+				$scope.message = "Normal Message";
+				$scope.orderList = [
+					{id: 10, name: "Laptop", qty: 20, price: 100},
+					{id: 20, name: "Rasor", qty: 2, price: 350},
+					{id: 30, name: "Desk", qty: 50, price: 20},
+					{id: 40, name: "Microwave", qty: 25, price: 30},
+					{id: 50, name: "Suitcase", qty: 32, price: 71}
+				];
+				$scope.price = 15;
+				$scope.sortCol = "qty";
+				$scope.reverse = false;
+			}]);
+			app.filter("reverse", function(){
+				return function(str){
+					return str.split("").reverse().join("");
+				}
+			})
+			app.filter("priceFilter", function(){
+				return function(items, price){
+					var filtered = [];
+					angular.forEach(items, function(item){
+						if(item.price > price) filtered.push(item);
+					});
+					return filtered;
+				}
+			})
+		</script>
+	</head>
+	<body ng-app = "mainApp">
+	<div class = "container" ng-controller = "mainCtrl">
+		<h1>Angular Filter</h1>
+		<hr>
+		<h2>Customized Filter</h2>
+		<p>Normal Message: {{message}}</p>
+		<p>Reversed Message: {{message | reverse}}</p>
+		<hr>
+		<h2>Filter for Collection</h2>
+		<p>Filtered word: <input type = "text" ng-model = "word"/></p>								
+		<p>Minimum Price: <input type = "text" ng-model = "price"/></p>
+		<table class = "table table-bordered table-striped">
+			<thead>
+				<tr>
+					<th><a href = "#" ng-click = "sortCol = 'id'; reverse = !reverse">ID</th>
+					<th><a href = "#" ng-click = "sortCol = 'name'; reverse = !reverse">Name</th>
+					<th><a href = "#" ng-click = "sortCol = 'qty'; reverse = !reverse">Quantity</th>
+					<th><a href = "#" ng-click = "sortCol = 'price'; reverse = !reverse">Price</th>
+					<th><a href = "#" ng-click = "sortCol = 'qty * price'; reverse = !reverse">Value</th>
+				</tr>
+			</thead>
+			<tbody>
+			<!-- use ':' to split multiple parameter -->
+			<!-- pagination will improve profermance; trackBy:stableize the tags ng-repeat will show all so is slow-->
+				<tr ng-repeat = "item in orderList | filter : word | priceFilter : price | orderBy: sortCol: reverse | limitTo: 3">
+					<td>{{item.id}}</td>
+					<td>{{item.name | uppercase}}</td>
+					<td>{{item.qty}}</td>
+					<td>{{item.price | currency}}</td>
+					<td>{{item.qty * item.price | currency}}</td>
+				</tr>
+			</tbody>
+		</table>
+		<hr>
+	</div>
+	</body>
+</html>
